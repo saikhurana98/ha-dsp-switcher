@@ -1,0 +1,156 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to the audio console",
+        "description": "Enter the gateway URL and a long-lived API token. Mint one in the console: Normalize tab → ACCESS TOKENS → GENERATE. The secret is shown once.",
+        "data": {
+          "base_url": "Base URL",
+          "api_token": "API token"
+        },
+        "data_description": {
+          "base_url": "For example https://audio.example.org — no trailing path.",
+          "api_token": "The dsp_… secret. It is stored encrypted and never logged."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate the audio console",
+        "description": "The token for {base_url} was refused. Mint a replacement in the console (Normalize → ACCESS TOKENS → GENERATE) and paste it here.",
+        "data": {
+          "api_token": "API token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the gateway at that URL.",
+      "invalid_auth": "The gateway did not accept that token.",
+      "invalid_url": "Enter a full URL starting with http:// or https://.",
+      "unknown": "Unexpected error. Check the Home Assistant log."
+    },
+    "abort": {
+      "already_configured": "This gateway is already configured.",
+      "reauth_successful": "The new token was accepted."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Polling",
+        "data": {
+          "scan_interval": "Scan interval"
+        },
+        "data_description": {
+          "scan_interval": "Seconds between snapshot polls (2–60). The integration also refreshes immediately after every command."
+        }
+      }
+    }
+  },
+  "services": {
+    "set_crosspoint": {
+      "name": "Set crosspoint",
+      "description": "Turn one matrix crosspoint on or off, optionally for a single side of a stereo pair.",
+      "fields": {
+        "entry_id": {
+          "name": "Gateway",
+          "description": "Config entry id. Only needed when several gateways are configured."
+        },
+        "input": {
+          "name": "Input",
+          "description": "Source input number."
+        },
+        "output": {
+          "name": "Output",
+          "description": "Zone output number."
+        },
+        "on": {
+          "name": "On",
+          "description": "Whether the crosspoint should be closed."
+        },
+        "side": {
+          "name": "Side",
+          "description": "Restrict to the left or right leg of the stereo pair. Omit to set both."
+        }
+      }
+    },
+    "set_send_level": {
+      "name": "Set send level",
+      "description": "Set the level of one input's send into one zone. Give either a percentage or a raw dB value.",
+      "fields": {
+        "entry_id": {
+          "name": "Gateway",
+          "description": "Config entry id. Only needed when several gateways are configured."
+        },
+        "input": {
+          "name": "Input",
+          "description": "Source input number."
+        },
+        "output": {
+          "name": "Output",
+          "description": "Zone output number."
+        },
+        "level_pct": {
+          "name": "Level (%)",
+          "description": "Fader position from 0 to 100. Converted to dB as pct * 0.6 - 60."
+        },
+        "level_db": {
+          "name": "Level (dB)",
+          "description": "Raw level in dB. Takes precedence over the percentage."
+        },
+        "side": {
+          "name": "Side",
+          "description": "Restrict to the left or right leg of the stereo pair. Omit to set both."
+        }
+      }
+    },
+    "master_overwrite": {
+      "name": "Master overwrite",
+      "description": "One-shot: write every zone to exactly this level and reset the proportional ratios to 1.",
+      "fields": {
+        "entry_id": {
+          "name": "Gateway",
+          "description": "Config entry id. Only needed when several gateways are configured."
+        },
+        "master": {
+          "name": "Master",
+          "description": "Level from 0 to 100 applied to every zone."
+        }
+      }
+    },
+    "source_control": {
+      "name": "Source transport",
+      "description": "Drive play/pause, next or previous on one streaming source.",
+      "fields": {
+        "entry_id": {
+          "name": "Gateway",
+          "description": "Config entry id. Only needed when several gateways are configured."
+        },
+        "input": {
+          "name": "Input",
+          "description": "Source input number."
+        },
+        "action": {
+          "name": "Action",
+          "description": "Transport action to perform."
+        }
+      }
+    },
+    "send_command": {
+      "name": "Send raw command",
+      "description": "Advanced: post an arbitrary command frame to /api/command. Unvalidated — the gateway is the only judge.",
+      "fields": {
+        "entry_id": {
+          "name": "Gateway",
+          "description": "Config entry id. Only needed when several gateways are configured."
+        },
+        "type": {
+          "name": "Type",
+          "description": "Command type, for example zone/level."
+        },
+        "payload": {
+          "name": "Payload",
+          "description": "Remaining fields of the frame, as a mapping."
+        }
+      }
+    }
+  }
+}

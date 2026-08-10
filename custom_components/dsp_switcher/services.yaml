@@ -1,0 +1,150 @@
+set_crosspoint:
+  fields:
+    entry_id:
+      required: false
+      example: 01J8Z0K7Q6XW3M8N4V2C9T5R1A
+      selector:
+        text:
+    input:
+      required: true
+      example: 5
+      selector:
+        number:
+          min: 1
+          max: 64
+          mode: box
+    output:
+      required: true
+      example: 3
+      selector:
+        number:
+          min: 1
+          max: 64
+          mode: box
+    # Quoted: an unquoted `on` is a boolean key in YAML 1.1.
+    "on":
+      required: true
+      example: true
+      selector:
+        boolean:
+    side:
+      required: false
+      example: l
+      selector:
+        select:
+          options:
+            - l
+            - r
+
+set_send_level:
+  fields:
+    entry_id:
+      required: false
+      example: 01J8Z0K7Q6XW3M8N4V2C9T5R1A
+      selector:
+        text:
+    input:
+      required: true
+      example: 5
+      selector:
+        number:
+          min: 1
+          max: 64
+          mode: box
+    output:
+      required: true
+      example: 3
+      selector:
+        number:
+          min: 1
+          max: 64
+          mode: box
+    level_pct:
+      required: false
+      example: 75
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: slider
+    level_db:
+      required: false
+      example: -12
+      selector:
+        number:
+          min: -100
+          max: 12
+          step: 0.5
+          unit_of_measurement: dB
+          mode: box
+    side:
+      required: false
+      example: r
+      selector:
+        select:
+          options:
+            - l
+            - r
+
+master_overwrite:
+  fields:
+    entry_id:
+      required: false
+      example: 01J8Z0K7Q6XW3M8N4V2C9T5R1A
+      selector:
+        text:
+    master:
+      required: true
+      example: 60
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: slider
+
+source_control:
+  fields:
+    entry_id:
+      required: false
+      example: 01J8Z0K7Q6XW3M8N4V2C9T5R1A
+      selector:
+        text:
+    input:
+      required: true
+      example: 5
+      selector:
+        number:
+          min: 1
+          max: 64
+          mode: box
+    action:
+      required: true
+      example: playpause
+      selector:
+        select:
+          options:
+            - playpause
+            - next
+            - previous
+
+send_command:
+  fields:
+    entry_id:
+      required: false
+      example: 01J8Z0K7Q6XW3M8N4V2C9T5R1A
+      selector:
+        text:
+    type:
+      required: true
+      example: zone/level
+      selector:
+        text:
+    payload:
+      required: false
+      example: '{"zone": 1, "level": -10}'
+      selector:
+        object:

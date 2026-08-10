@@ -1,0 +1,5 @@
+{
+  "name": "DSP Switcher Audio Console",
+  "render_readme": true,
+  "homeassistant": "2025.2.0"
+}

@@ -1,0 +1,23 @@
+# Mirrors the Home Assistant core lint configuration closely enough that code
+# written here would pass review upstream.
+target-version = "py312"
+line-length = 88
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "D", "ANN", "B", "SIM", "RUF"]
+ignore = [
+  "D203",   # conflicts with D211
+  "D213",   # conflicts with D212
+  "ANN401", # Any is unavoidable on **kwargs and raw payloads
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["ANN001", "ANN201"]
+
+[lint.isort]
+force-sort-within-sections = true
+combine-as-imports = true
+known-first-party = ["homeassistant", "custom_components"]
+
+[lint.pydocstyle]
+convention = "pep257"
