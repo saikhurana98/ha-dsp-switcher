@@ -8,7 +8,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import CMD_SOURCE_ENABLE
+from .const import CMD_SOURCE_ENABLE, CMD_ZONE_MUTE
 from .coordinator import DspSwitcherConfigEntry, DspSwitcherCoordinator
 from .entity import DspSwitcherEntity
 
@@ -18,15 +18,17 @@ async def async_setup_entry(
     entry: DspSwitcherConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Add an enable switch for every configured source."""
+    """Add an enable switch for every configured source, plus master mute."""
     coordinator = entry.runtime_data
-    async_add_entities(
+    entities: list[SwitchEntity] = [
         DspSwitcherSourceSwitch(
             coordinator, int(src["input"]), str(src.get("name") or src["input"])
         )
         for src in coordinator.sources
         if src.get("input") is not None
-    )
+    ]
+    entities.append(DspSwitcherMasterMute(coordinator))
+    async_add_entities(entities)
 
 
 class DspSwitcherSourceSwitch(DspSwitcherEntity, SwitchEntity):
@@ -83,3 +85,53 @@ class DspSwitcherSourceSwitch(DspSwitcherEntity, SwitchEntity):
         await self.coordinator.async_send_command(
             {"type": CMD_SOURCE_ENABLE, "source": self._input, "on": enabled}
         )
+
+
+class DspSwitcherMasterMute(DspSwitcherEntity, SwitchEntity):
+    """Mute every zone at once, restoring the previous mix on release.
+
+    The gateway has no master-mute command; like the console's ALL MUTE button
+    this loops zone/mute over every zone. Turning on remembers which zones were
+    already muted and turning off puts exactly that pattern back. The memory
+    lives in this entity instance, so after a Home Assistant restart turning
+    off simply unmutes everything.
+    """
+
+    _attr_name = "Master mute"
+    _attr_icon = "mdi:volume-variant-off"
+
+    def __init__(self, coordinator: DspSwitcherCoordinator) -> None:
+        """Bind the switch to the whole zone set."""
+        super().__init__(coordinator, "switch", "master_mute")
+        self._pre_mute: dict[int, bool] | None = None
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return True when every zone is muted."""
+        zones = self.coordinator.zones
+        if not zones:
+            return None
+        return all(bool(z.get("muted")) for z in zones)
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Mute all zones, remembering which were already muted."""
+        zones = self.coordinator.zones
+        self._pre_mute = {
+            int(z["output"]): bool(z.get("muted")) for z in zones if "output" in z
+        }
+        for output in self._pre_mute:
+            await self.coordinator.async_send_command(
+                {"type": CMD_ZONE_MUTE, "zone": output, "mute": True}
+            )
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Restore the pre-mute pattern, or unmute everything."""
+        pre = self._pre_mute or {}
+        self._pre_mute = None
+        for z in self.coordinator.zones:
+            if "output" not in z:
+                continue
+            output = int(z["output"])
+            await self.coordinator.async_send_command(
+                {"type": CMD_ZONE_MUTE, "zone": output, "mute": pre.get(output, False)}
+            )

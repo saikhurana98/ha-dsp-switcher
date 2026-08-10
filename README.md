@@ -123,6 +123,7 @@ One device, *Audio Console*, holds everything. Unique ids are
 | `number.audio_console_master_volume` | number | always | 0–100, step 1 → `master`. Proportional: each zone keeps its ratio. |
 | `number.<source>_trim` | number | each source | 0–100 → `source/level`. Config category. Attribute: `trim_db`. |
 | `switch.<source>_enabled` | switch | each source | → `source/enable`. Also starts/stops the source's unit on its media host. Attributes: `input`, `source_type`, `host`. |
+| `switch.audio_console_master_mute` | switch | one | Mutes every zone at once (loops `zone/mute`, like the console's ALL MUTE). Turning off restores the pre-mute pattern; after an HA restart it unmutes everything. |
 | `sensor.<source>_status` | sensor | sources that report `live` | Enum `streaming` / `idle` / `offline`. Attributes: `advertised_name`, `title`, `artist`, `album`, `art_url`. |
 | `binary_sensor.audio_console_dsp_connected` | binary_sensor | always | Device class `connectivity`, from `connected`. Stays available while the DSP link is down — that is the state it exists to report. |
 
