@@ -11,8 +11,9 @@ TTP and fans a handful of Spotify and AirPlay sources across a routing matrix;
 this integration puts every zone on the dashboard as a media player, exposes the
 master fader and per-source trims as numbers, mirrors each source's live
 streaming status, and hands automations the full routing matrix through five
-services. It polls one public snapshot endpoint and sends commands with a
-long-lived API token — no cloud, no polling of the DSP itself.
+services. State arrives pushed over a WebSocket and commands go back down the
+same socket with a long-lived API token — no cloud, no polling of the DSP
+itself.
 
 *The Audio Console device in Home Assistant — zone media players, source enables, trims and the master fader:*
 
@@ -34,14 +35,35 @@ flowchart LR
     M1["Media host 1<br/>librespot + shairport"]
     M2["Media host 2<br/>librespot + shairport"]
 
-    HA -- "GET /api/state (5 s poll)" --> GW
-    HA -- "POST /api/command (Bearer dsp_…)" --> GW
+    GW -- "WS /api/ws?stream=state (push, Bearer dsp_…)" --> HA
+    HA -- "command frames over the same socket" --> GW
+    HA -. "GET /api/state + POST /api/command (REST fallback)" .-> GW
     GW -- "matrix, levels, mutes" --> DSP
     GW -- "SSH: unit lifecycle, MPRIS" --> M1
     GW -- "SSH: unit lifecycle, MPRIS" --> M2
     M1 -- "analogue in" --> DSP
     M2 -- "analogue in" --> DSP
 ```
+
+### Latency
+
+State used to arrive by polling `GET /api/state` every `scan_interval` seconds,
+so anything changed on the console — someone touching a fader in the web UI, a
+track advancing, a source going offline — showed up in Home Assistant somewhere
+between instantly and a full interval later; on the default 5 s that averaged
+about 2.5 s of lag.
+
+The integration now holds `GET /api/ws?stream=state` open instead. The gateway
+pushes the same aggregate document the moment anything changes, so entities
+update as fast as the network allows. Commands go out on that socket too and are
+acknowledged in-band, with no follow-up refresh needed because the resulting
+state is pushed anyway.
+
+Polling has not gone away, it has become the safety net. While the socket is up
+the poll stretches to once a minute; if the socket drops, the interval snaps back
+to the configured `scan_interval` and stays there while a supervisor reconnects
+with exponential backoff (1 s up to 60 s). `GET /api/state` is public on the
+gateway, so the fallback keeps working even while a token is being replaced.
 
 ## Features
 
@@ -60,7 +82,8 @@ flowchart LR
 - **Five services** covering the parts of the command surface that have no
   natural entity: individual crosspoints, send levels, the one-shot master
   overwrite, per-source transport, and a raw passthrough.
-- Local polling only, with an immediate refresh after every command.
+- **Local push** over one authenticated WebSocket, with REST polling kept as an
+  automatic fallback whenever that socket is down.
 
 ## Installation
 
@@ -107,9 +130,10 @@ revoked token gives **invalid_auth**; an unreachable or non-JSON endpoint gives
 ### 3. Options
 
 **Configure** on the integration card sets the **scan interval** (2–60 s,
-default 5). The integration also requests an immediate refresh after every
-command, so the interval only governs how quickly it notices changes made from
-the console UI or the physical DSP.
+default 5). This is the *fallback* poll: while the push socket is connected the
+integration polls only once a minute as a safety net, and the configured
+interval applies only while the socket is down. Lower it if you want a tighter
+worst case during an outage; it has no effect on the normal push path.
 
 ## Entities
 
@@ -286,9 +310,11 @@ land until it reconnects.
 role only, by design. Output normalization and token management stay human-only
 in the console UI.
 
-**Slow to reflect changes made in the console UI.** The integration polls; drop
-the scan interval in the options flow. Commands sent from Home Assistant refresh
-immediately regardless.
+**Slow to reflect changes made in the console UI.** That means the push socket
+is down and the integration has fallen back to polling. Check the entry's
+diagnostics for `ws_connected`; if it is `false`, confirm the gateway is
+reachable and the token is still valid, then lower the scan interval in the
+options flow to tighten the fallback.
 
 ## Development
 

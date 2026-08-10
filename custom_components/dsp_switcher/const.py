@@ -26,6 +26,26 @@ PATH_STATE: Final = "/api/state"
 PATH_SESSION: Final = "/api/session"
 PATH_COMMAND: Final = "/api/command"
 
+# WebSocket push. The gateway serves both its console protocol and an aggregate
+# protocol on /api/ws; "stream=state" selects the latter, whose single frame
+# type carries exactly the /api/state document (internal/api/ws.go).
+PATH_WS: Final = "/api/ws"
+WS_STREAM_QUERY: Final = "stream=state"
+FRAME_STATE_AGGREGATE: Final = "state:aggregate"
+FRAME_ACK: Final = "ack"
+
+# Seconds. The heartbeat is aiohttp's own ping timer, which is what actually
+# detects a silently dropped socket -- the gateway pushes only on change, so a
+# quiet console is indistinguishable from a dead link without it.
+WS_HEARTBEAT: Final = 25
+WS_CONNECT_TIMEOUT: Final = 10
+WS_COMMAND_TIMEOUT: Final = 10
+
+# Reconnect backoff, and the slow safety-net poll used while the socket is up.
+WS_RECONNECT_MIN: Final = 1
+WS_RECONNECT_MAX: Final = 60
+WS_FALLBACK_SCAN_INTERVAL: Final = 60
+
 # Console fader range. Every level the gateway exposes -- zone outputs, matrix
 # sends and source trims -- shares this dB range (internal/matrix/service.go,
 # zoneDbMin/zoneDbMax), and the percentage is a plain linear position on it.

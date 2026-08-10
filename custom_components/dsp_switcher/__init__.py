@@ -116,7 +116,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: DspSwitcherConfigEntry) 
         entry.data[CONF_API_TOKEN],
     )
     coordinator = DspSwitcherCoordinator(hass, entry, client)
+    # The first snapshot comes over REST so setup fails fast and visibly on a
+    # dead gateway; the push socket then takes over as the live transport.
     await coordinator.async_config_entry_first_refresh()
+    await coordinator.async_start_ws()
 
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -128,7 +131,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: DspSwitcherConfigEntry) 
 async def async_unload_entry(
     hass: HomeAssistant, entry: DspSwitcherConfigEntry
 ) -> bool:
-    """Tear down a config entry."""
+    """Tear down a config entry, closing the push socket first."""
+    await entry.runtime_data.async_stop_ws()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 

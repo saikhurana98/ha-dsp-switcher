@@ -28,5 +28,9 @@ async def async_get_config_entry_diagnostics(
             "options": dict(entry.options),
         },
         "last_update_success": coordinator.last_update_success,
+        # Which transport is live right now: True means state is being pushed
+        # over the socket, False means the entry has fallen back to polling.
+        "ws_connected": coordinator.ws_connected,
+        "update_interval": str(coordinator.update_interval),
         "state": coordinator.data,
     }

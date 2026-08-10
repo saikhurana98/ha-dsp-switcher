@@ -35,12 +35,12 @@
   "options": {
     "step": {
       "init": {
-        "title": "Polling",
+        "title": "Fallback polling",
         "data": {
           "scan_interval": "Scan interval"
         },
         "data_description": {
-          "scan_interval": "Seconds between snapshot polls (2–60). The integration also refreshes immediately after every command."
+          "scan_interval": "Seconds between fallback snapshot polls (2–60). State normally arrives pushed over a live connection and this poll idles; it only runs at this rate while that connection is down."
         }
       }
     }
