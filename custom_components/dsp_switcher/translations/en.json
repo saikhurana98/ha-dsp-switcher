@@ -9,7 +9,7 @@
           "api_token": "API token"
         },
         "data_description": {
-          "base_url": "For example https://audio.example.org — no trailing path.",
+          "base_url": "The scheme and host of the console, with no trailing path.",
           "api_token": "The dsp_… secret. It is stored encrypted and never logged."
         }
       },
