@@ -14,9 +14,15 @@ streaming status, and hands automations the full routing matrix through five
 services. It polls one public snapshot endpoint and sends commands with a
 long-lived API token — no cloud, no polling of the DSP itself.
 
-![Console](images/console.png)
+*The Audio Console device in Home Assistant — zone media players, source enables, trims and the master fader:*
 
 ![Entities](images/entities.png)
+
+*The upstream console this integration drives — the mixing surface and the Dante-style routing matrix:*
+
+![Console](images/console.png)
+
+![Routing](images/routing.png)
 
 ## Architecture
 

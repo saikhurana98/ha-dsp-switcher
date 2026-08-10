@@ -175,7 +175,6 @@ class DspSwitcherNowPlaying(DspSwitcherEntity, MediaPlayerEntity):
     _attr_supported_features = (
         MediaPlayerEntityFeature.PLAY
         | MediaPlayerEntityFeature.PAUSE
-        | MediaPlayerEntityFeature.PLAY_PAUSE
         | MediaPlayerEntityFeature.NEXT_TRACK
         | MediaPlayerEntityFeature.PREVIOUS_TRACK
     )
